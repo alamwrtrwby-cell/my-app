@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Baynatna"
+description = "A private space for friends to share daily moods, answer questions, play together, and keep memories in one warm, simple place."
+version = "1.0.0"
+id = "artifacts/baynatna"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23838
+
+[services.development]
+run = "pnpm --filter @workspace/baynatna run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/baynatna", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/baynatna/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23838"
+BASE_PATH = "/"

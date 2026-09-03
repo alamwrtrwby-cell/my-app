@@ -1,22 +1,22 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API for Baynatna private friend groups
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: baynatna
+    description: Private friend group operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +24,541 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /me:
+    get:
+      operationId: getMe
+      tags: [baynatna]
+      summary: Get the current profile
+      responses:
+        "200":
+          description: Current profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    post:
+      operationId: createOrUpdateMe
+      tags: [baynatna]
+      summary: Create or update the current profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "200":
+          description: Saved profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [baynatna]
+      summary: Get the home dashboard
+      responses:
+        "200":
+          description: Dashboard snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /groups:
+    get:
+      operationId: listGroups
+      tags: [baynatna]
+      summary: List groups for the current user
+      responses:
+        "200":
+          description: Groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+    post:
+      operationId: createGroup
+      tags: [baynatna]
+      summary: Create a private friend group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupInput"
+      responses:
+        "201":
+          description: Created group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+  /groups/join:
+    post:
+      operationId: joinGroup
+      tags: [baynatna]
+      summary: Join a group with an invite code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JoinGroupInput"
+      responses:
+        "200":
+          description: Joined group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+  /groups/{groupId}:
+    get:
+      operationId: getGroup
+      tags: [baynatna]
+      summary: Get a group
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      responses:
+        "200":
+          description: Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+  /groups/{groupId}/members:
+    get:
+      operationId: listGroupMembers
+      tags: [baynatna]
+      summary: List group members
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      responses:
+        "200":
+          description: Members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupMember"
+  /groups/{groupId}/moods:
+    get:
+      operationId: listGroupMoods
+      tags: [baynatna]
+      summary: List recent shared moods
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      responses:
+        "200":
+          description: Recent moods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Mood"
+    post:
+      operationId: createMood
+      tags: [baynatna]
+      summary: Save today's mood
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodInput"
+      responses:
+        "201":
+          description: Saved mood
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mood"
+  /groups/{groupId}/daily-question:
+    get:
+      operationId: getDailyQuestion
+      tags: [baynatna]
+      summary: Get today's group question
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      responses:
+        "200":
+          description: Daily question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyQuestion"
+    post:
+      operationId: createDailyQuestion
+      tags: [baynatna]
+      summary: Create a group question
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DailyQuestionInput"
+      responses:
+        "201":
+          description: Created question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyQuestion"
+  /questions/{questionId}/answers:
+    get:
+      operationId: listQuestionAnswers
+      tags: [baynatna]
+      summary: List answers to a question
+      parameters:
+        - $ref: "#/components/parameters/QuestionId"
+      responses:
+        "200":
+          description: Answers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuestionAnswer"
+    post:
+      operationId: createQuestionAnswer
+      tags: [baynatna]
+      summary: Answer the daily question
+      parameters:
+        - $ref: "#/components/parameters/QuestionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuestionAnswerInput"
+      responses:
+        "201":
+          description: Saved answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionAnswer"
+  /groups/{groupId}/games:
+    get:
+      operationId: listGames
+      tags: [baynatna]
+      summary: List group games
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      responses:
+        "200":
+          description: Games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Game"
+    post:
+      operationId: createGame
+      tags: [baynatna]
+      summary: Start a who knows me best game
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameInput"
+      responses:
+        "201":
+          description: Started game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+  /games/{gameId}:
+    get:
+      operationId: getGame
+      tags: [baynatna]
+      summary: Get a game
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+      responses:
+        "200":
+          description: Game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+  /games/{gameId}/answers:
+    post:
+      operationId: createGameAnswer
+      tags: [baynatna]
+      summary: Answer a game question
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameAnswerInput"
+      responses:
+        "201":
+          description: Saved game answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameAnswer"
+  /groups/{groupId}/memories:
+    get:
+      operationId: listMemories
+      tags: [baynatna]
+      summary: List group memories
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      responses:
+        "200":
+          description: Memories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Memory"
+    post:
+      operationId: createMemory
+      tags: [baynatna]
+      summary: Save a memory
+      parameters:
+        - $ref: "#/components/parameters/GroupId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryInput"
+      responses:
+        "201":
+          description: Saved memory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
 components:
+  parameters:
+    GroupId:
+      name: groupId
+      in: path
+      required: true
+      schema:
+        type: string
+    QuestionId:
+      name: questionId
+      in: path
+      required: true
+      schema:
+        type: string
+    GameId:
+      name: gameId
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
-
+      required: [status]
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        avatarUrl: { type: ["string", "null"] }
+        joinedAt: { type: string }
+      required: [id, name, email, joinedAt]
+    UserInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        email: { type: string }
+        avatarUrl: { type: ["string", "null"] }
+      required: [name, email]
+    Group:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        inviteCode: { type: string }
+        createdBy: { type: string }
+        memberCount: { type: number }
+        createdAt: { type: string }
+      required: [id, name, inviteCode, createdBy, memberCount, createdAt]
+    GroupInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+      required: [name]
+    JoinGroupInput:
+      type: object
+      properties:
+        inviteCode: { type: string, minLength: 4 }
+      required: [inviteCode]
+    GroupMember:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        name: { type: string }
+        avatarUrl: { type: ["string", "null"] }
+        role: { type: string, enum: [owner, member] }
+        joinedAt: { type: string }
+        currentMood: { type: ["string", "null"] }
+      required: [id, userId, name, role, joinedAt]
+    Mood:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        userName: { type: string }
+        emoji: { type: string }
+        label: { type: string }
+        note: { type: ["string", "null"] }
+        shared: { type: boolean }
+        date: { type: string }
+      required: [id, userId, userName, emoji, label, shared, date]
+    MoodInput:
+      type: object
+      properties:
+        emoji: { type: string, minLength: 1 }
+        label: { type: string, minLength: 1 }
+        note: { type: string }
+        shared: { type: boolean }
+      required: [emoji, label, shared]
+    DailyQuestion:
+      type: object
+      properties:
+        id: { type: string }
+        groupId: { type: string }
+        prompt: { type: string }
+        date: { type: string }
+        answerCount: { type: number }
+      required: [id, groupId, prompt, date, answerCount]
+    DailyQuestionInput:
+      type: object
+      properties:
+        prompt: { type: string, minLength: 1 }
+        date: { type: string }
+      required: [prompt, date]
+    QuestionAnswer:
+      type: object
+      properties:
+        id: { type: string }
+        questionId: { type: string }
+        userId: { type: string }
+        userName: { type: string }
+        answer: { type: string }
+        createdAt: { type: string }
+      required: [id, questionId, userId, userName, answer, createdAt]
+    QuestionAnswerInput:
+      type: object
+      properties:
+        answer: { type: string, minLength: 1 }
+      required: [answer]
+    Game:
+      type: object
+      properties:
+        id: { type: string }
+        groupId: { type: string }
+        title: { type: string }
+        prompt: { type: string }
+        status: { type: string, enum: [active, complete] }
+        questionCount: { type: number }
+        createdAt: { type: string }
+      required: [id, groupId, title, prompt, status, questionCount, createdAt]
+    GameInput:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+      required: [title]
+    GameAnswer:
+      type: object
+      properties:
+        id: { type: string }
+        gameId: { type: string }
+        userId: { type: string }
+        userName: { type: string }
+        answer: { type: string }
+        correct: { type: boolean }
+      required: [id, gameId, userId, userName, answer, correct]
+    GameAnswerInput:
+      type: object
+      properties:
+        answer: { type: string, minLength: 1 }
+      required: [answer]
+    Memory:
+      type: object
+      properties:
+        id: { type: string }
+        groupId: { type: string }
+        authorName: { type: string }
+        type: { type: string, enum: [photo, note, moment] }
+        title: { type: string }
+        body: { type: ["string", "null"] }
+        imageUrl: { type: ["string", "null"] }
+        createdAt: { type: string }
+      required: [id, groupId, authorName, type, title, createdAt]
+    MemoryInput:
+      type: object
+      properties:
+        type: { type: string, enum: [photo, note, moment] }
+        title: { type: string, minLength: 1 }
+        body: { type: string }
+        imageUrl: { type: string }
+      required: [type, title]
+    DashboardSummary:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        selectedGroup:
+          anyOf:
+            - $ref: "#/components/schemas/Group"
+            - type: "null"
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupMember"
+        todayMood:
+          anyOf:
+            - $ref: "#/components/schemas/Mood"
+            - type: "null"
+        question:
+          anyOf:
+            - $ref: "#/components/schemas/DailyQuestion"
+            - type: "null"
+        recentAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionAnswer"
+        latestMemories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Memory"
+        activeGame:
+          anyOf:
+            - $ref: "#/components/schemas/Game"
+            - type: "null"
+      required: [user, selectedGroup, members, todayMood, question, recentAnswers, latestMemories, activeGame]
