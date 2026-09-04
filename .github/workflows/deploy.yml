@@ -29,11 +29,11 @@ jobs:
 
       - name: Install dependencies
         working-directory: artifacts/baynatna
-        run: npm install
+        run: corepack enable && corepack prepare pnpm@10 --activate && pnpm install
 
       - name: Build app
         working-directory: artifacts/baynatna
-        run: npm run build
+        run: pnpm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
